@@ -8,7 +8,8 @@ ign_list = ['Tic-Tac-Four' 'Connect Four\n\n', 'Tic-Tac-Toe\n\n', 'Rock-Paper-Sc
             'Russian Roulette\n\n', 'Checkers\n\n', 'Pool Checkers\n\n']
 
 
-# OPS
+# DATABASE OPERATIONS
+# Read messages from database
 def read_db(cid, uid):
     conn = sqlite3.connect('messages.db')
     c = conn.cursor()
@@ -22,6 +23,7 @@ def read_db(cid, uid):
         data = '[]'
         return data
 
+# Write messages to database
 def write_db(cid, msg, id):
     if all(i not in msg for i in ign_list):
         conn = sqlite3.connect('messages.db')
@@ -35,6 +37,7 @@ def write_db(cid, msg, id):
 
 
 # COMMAND HANDLERS
+# Greeting message
 def start(bot, update):
     update.message.reply_text('Add me to groups, and I\'ll collect the messages required for generating a word cloud! '
                               'Use /help for more info')
@@ -46,6 +49,7 @@ def help(bot, update):
                               '/request - Request a feature to be added\n\nKeep generating for '
                               'different colors and positions!')
 
+# Generate a word cloud image
 def gen(bot, update):
     cid = str(update.message.chat_id)
     uid = int(update.message.from_user.id)
@@ -53,19 +57,18 @@ def gen(bot, update):
     if words == '[]':
         update.message.reply_text('Please send messages before generating!')
     else:
-        # Clean words
         words = words.replace('\'', '')
         words = words.replace('\\n', ' ')
         words = words.replace(',', '')
         words = words.lower()
-        # Generate image
         wordcloud = WordCloud(background_color='white').generate(words)
         image = wordcloud.to_image()
         image.save('wc.png', 'PNG')
         bot.sendPhoto(cid, photo=open('wc.png', 'rb'), 
                       reply_to_message_id=update.message.message_id, 
                       caption='Word Cloud for %s'%(update.message.from_user.first_name))
-    
+
+# Delete user chat history    
 def delmsg(bot, update):
     cid = str(update.message.chat_id)
     uid = int(update.message.from_user.id)
@@ -76,19 +79,21 @@ def delmsg(bot, update):
     conn.close()
     update.message.reply_text('History deleted!')
 
-def req(bot, update, args): #For feature requests
+# Request a feature
+def req(bot, update, args):
     rmesg = " ".join(args)
     if rmesg == "":
         update.message.reply_text('Please type /request followed by your suggestion')
     else:
-        bot.sendMessage(chat_id=, text='Feature requested: %s' %rmesg)
+        bot.sendMessage(chat_id='', text='Feature requested: %s' %rmesg) 
         conn = sqlite3.connect('features.db')
         conn.execute("INSERT INTO features VALUES (?)", (rmesg,))
         conn.commit()
         conn.close()
 
 
-# Message Handlers
+# MESSAGE HANDLERS
+# Save an incoming message
 def save_msg(bot, update):
     cid = str(update.message.chat_id)
     msg = str(update.message.text)
@@ -96,18 +101,16 @@ def save_msg(bot, update):
     write_db(cid, msg, uid)
 
 
-# Telegram Wrapper
+# TELEGRAM WRAPPER
 def main():
     updater = Updater('')
     dp = updater.dispatcher
-
     # Command Handlers
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(CommandHandler('generate', gen))
     dp.add_handler(CommandHandler('reset_hist', delmsg))
     dp.add_handler(CommandHandler('request', req, pass_args=True))
-
     # Messages
     dp.add_handler(MessageHandler(Filters.text, save_msg))
 
