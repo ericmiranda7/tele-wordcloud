@@ -58,7 +58,6 @@ def gen(bot, update):
         update.message.reply_text('Please send messages before generating!')
     else:
         words = words.replace('\\n', ' ')
-        words = words.replace('\'', '')
         words = words.replace(',', '')
         words = words.replace(')', '')
         words = words.replace(']', '')
