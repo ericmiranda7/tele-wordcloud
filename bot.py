@@ -57,10 +57,14 @@ def gen(bot, update):
     if words == '[]':
         update.message.reply_text('Please send messages before generating!')
     else:
-        words = words.replace('\'', '')
         words = words.replace('\\n', ' ')
+        words = words.replace('\'', '')
         words = words.replace(',', '')
-        words = words.lower()
+        words = words.replace(')', '')
+        words = words.replace(']', '')
+        words = words.replace('(', '')
+        words = words.replace('[', '')
+        words = words.replace('\\', '')
         wordcloud = WordCloud(background_color='white').generate(words)
         image = wordcloud.to_image()
         image.save('wc.png', 'PNG')
