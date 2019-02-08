@@ -59,10 +59,8 @@ def gen(bot, update):
     else:
         words = words.replace('\\n', ' ')
         words = words.replace(',', '')
-        words = words.replace(')', '')
-        words = words.replace(']', '')
-        words = words.replace('(', '')
-        words = words.replace('[', '')
+        words = words.replace('[(\'', '')
+        words = words.replace('\')]', '')
         words = words.replace('\\', '')
         wordcloud = WordCloud(background_color='white').generate(words)
         image = wordcloud.to_image()
