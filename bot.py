@@ -5,7 +5,7 @@ from PIL import Image
 matplotlib.use('Agg')
 
 ign_list = ['Tic-Tac-Four' 'Connect Four\n\n', 'Tic-Tac-Toe\n\n', 'Rock-Paper-Scissors\n\n', 
-            'Russian Roulette\n\n', 'Checkers\n\n', 'Pool Checkers\n\n']
+            'Russian Roulette\n\n', 'Checkers\n\n', 'Pool Checkers\n\n', 'https']
 
 
 # DATABASE OPERATIONS
@@ -104,8 +104,9 @@ def save_msg(bot, update):
 
 # TELEGRAM WRAPPER
 def main():
-    updater = Updater('')
+    updater = Updater('662143843:AAF_96TJVEqbc2VXNi8JudkA3m0UNlbj9bc')
     dp = updater.dispatcher
+    
     # Command Handlers
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('help', help))

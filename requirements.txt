@@ -13,7 +13,6 @@ matplotlib==2.2.3
 mccabe==0.6.1
 numpy==1.15.1
 Pillow==5.2.0
-pkg-resources==0.0.0
 pycparser==2.18
 pylint==2.1.1
 pyparsing==2.2.0
