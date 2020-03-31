@@ -104,7 +104,7 @@ def save_msg(bot, update):
 
 # TELEGRAM WRAPPER
 def main():
-    updater = Updater('662143843:AAF_96TJVEqbc2VXNi8JudkA3m0UNlbj9bc')
+    updater = Updater('')
     dp = updater.dispatcher
     
     # Command Handlers
