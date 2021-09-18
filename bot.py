@@ -1,10 +1,17 @@
+import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import sqlite3, matplotlib
+import sqlite3
+import matplotlib
+import os
+from dotenv import load_dotenv, find_dotenv
 from wordcloud import WordCloud
 from PIL import Image
 matplotlib.use('Agg')
+load_dotenv(find_dotenv())
 
-ign_list = ['Tic-Tac-Four' 'Connect Four\n\n', 'Tic-Tac-Toe\n\n', 'Rock-Paper-Scissors\n\n', 
+API_TOKEN = os.environ.get('API_TOKEN')
+
+ign_list = ['Tic-Tac-Four' 'Connect Four\n\n', 'Tic-Tac-Toe\n\n', 'Rock-Paper-Scissors\n\n',
             'Russian Roulette\n\n', 'Checkers\n\n', 'Pool Checkers\n\n', 'https']
 
 
@@ -24,25 +31,30 @@ def read_db(cid, uid):
         return data
 
 # Write messages to database
+
+
 def write_db(cid, msg, id):
     if all(i not in msg for i in ign_list):
         conn = sqlite3.connect('messages.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS '{}'" 
+        c.execute("CREATE TABLE IF NOT EXISTS '{}'"
                   "(messages TEXT NOT NULL DEFAULT '', uid INTEGER UNIQUE PRIMARY KEY)".format(cid))
-        c.execute("INSERT OR IGNORE INTO '{}' (messages, uid) VALUES ('', ?)".format(cid), (id,))
-        c.execute("UPDATE '{}' SET messages = messages || ' ' || ? WHERE uid LIKE ?".format(cid), (msg, id,))
+        c.execute(
+            "INSERT OR IGNORE INTO '{}' (messages, uid) VALUES ('', ?)".format(cid), (id,))
+        c.execute("UPDATE '{}' SET messages = messages || ' ' || ? WHERE uid LIKE ?".format(
+            cid), (msg, id,))
         conn.commit()
         conn.close()
 
 
 # COMMAND HANDLERS
 # Greeting message
-def start(bot, update):
+def start(update, context):
     update.message.reply_text('Add me to groups, and I\'ll collect the messages required for generating a word cloud! '
                               'Use /help for more info')
 
-def help(bot, update):
+
+def help(update, context):
     update.message.reply_text('This bot can only collect messages from the time it\'s been added to the group.\n'
                               '/generate - Generates a wordcloud from requesting user\'s history\n'
                               '/reset_hist - DELETES all message history of the requesting user\n'
@@ -50,7 +62,9 @@ def help(bot, update):
                               'different colors and positions!')
 
 # Generate a word cloud image
-def gen(bot, update):
+
+
+def gen(update, context):
     cid = str(update.message.chat_id)
     uid = int(update.message.from_user.id)
     words = str(read_db(cid, uid))
@@ -65,12 +79,14 @@ def gen(bot, update):
         wordcloud = WordCloud(background_color='white').generate(words)
         image = wordcloud.to_image()
         image.save('wc.png', 'PNG')
-        bot.sendPhoto(cid, photo=open('wc.png', 'rb'), 
-                      reply_to_message_id=update.message.message_id, 
-                      caption='Word Cloud for %s'%(update.message.from_user.first_name))
+        context.bot.sendPhoto(cid, photo=open('wc.png', 'rb'),
+                              reply_to_message_id=update.message.message_id,
+                              caption='Word Cloud for %s' % (update.message.from_user.first_name))
 
-# Delete user chat history    
-def delmsg(bot, update):
+# Delete user chat history
+
+
+def delmsg(update, context):
     cid = str(update.message.chat_id)
     uid = int(update.message.from_user.id)
     conn = sqlite3.connect('messages.db')
@@ -81,12 +97,16 @@ def delmsg(bot, update):
     update.message.reply_text('History deleted!')
 
 # Request a feature
-def req(bot, update, args):
+
+
+def req(update, context):
     rmesg = " ".join(args)
     if rmesg == "":
-        update.message.reply_text('Please type /request followed by your suggestion')
+        update.message.reply_text(
+            'Please type /request followed by your suggestion')
     else:
-        bot.sendMessage(chat_id='', text='Feature requested: %s' %rmesg) 
+        context.bot.sendMessage(
+            chat_id='', text='Feature requested: %s' % rmesg)
         conn = sqlite3.connect('features.db')
         conn.execute("INSERT INTO features VALUES (?)", (rmesg,))
         conn.commit()
@@ -95,7 +115,7 @@ def req(bot, update, args):
 
 # MESSAGE HANDLERS
 # Save an incoming message
-def save_msg(bot, update):
+def save_msg(update, context):
     cid = str(update.message.chat_id)
     msg = str(update.message.text)
     uid = int(update.message.from_user.id)
@@ -104,15 +124,19 @@ def save_msg(bot, update):
 
 # TELEGRAM WRAPPER
 def main():
-    updater = Updater('')
+    updater = Updater(API_TOKEN)
     dp = updater.dispatcher
-    
+
+    # logging
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        level=logging.INFO)
+
     # Command Handlers
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(CommandHandler('generate', gen))
     dp.add_handler(CommandHandler('reset_hist', delmsg))
-    dp.add_handler(CommandHandler('request', req, pass_args=True))
+    dp.add_handler(CommandHandler('request', req))
     # Messages
     dp.add_handler(MessageHandler(Filters.text, save_msg))
 
