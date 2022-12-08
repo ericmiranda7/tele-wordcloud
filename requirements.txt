@@ -5,7 +5,7 @@ autopep8==1.5.7
 backports.zoneinfo==0.2.1
 bcrypt==3.2.0
 cachetools==4.2.2
-certifi==2018.8.24
+certifi==2022.12.7
 cffi==1.14.6
 cryptography==2.3.1
 cycler==0.10.0
